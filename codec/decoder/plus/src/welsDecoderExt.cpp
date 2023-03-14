@@ -732,11 +732,11 @@ DECODING_STATE CWelsDecoder::DecodeFrame2WithCtx (PWelsDecoderContext pDecContex
     return dsInitialOptExpected;
   }
 
-  if (pDecContext->pParam->bParseOnly) {
-    WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_ERROR, "bParseOnly should be false for this API calling! \n");
-    pDecContext->iErrorCode |= dsInvalidArgument;
-    return dsInvalidArgument;
-  }
+  // if (pDecContext->pParam->bParseOnly) {
+  //   WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_ERROR, "bParseOnly should be false for this API calling! \n");
+  //   pDecContext->iErrorCode |= dsInvalidArgument;
+  //   return dsInvalidArgument;
+  // }
   if (CheckBsBuffer (pDecContext, kiSrcLen)) {
     if (ResetDecoder (pDecContext))
       return dsOutOfMemory;
