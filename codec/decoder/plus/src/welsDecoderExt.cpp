@@ -911,6 +911,24 @@ DECODING_STATE CWelsDecoder::DecodeFrame2 (const unsigned char* kpSrc,
   return DecodeFrame2WithCtx (pDecContext, kpSrc, kiSrcLen, ppDst, pDstInfo);
 }
 
+DECODING_STATE CWelsDecoder::ParseBitstreamGetMotionVectors (const unsigned char* kpSrc,
+    const int kiSrcLen,
+    unsigned char** ppDst,
+    SBufferInfo* pDstInfo,
+    size_t motionVectorSize,
+    int16_t* motionVectorData) {
+  PWelsDecoderContext pDecContext = m_pDecThrCtx[0].pCtx;
+  auto state =  DecodeFrame2WithCtx (pDecContext, kpSrc, kiSrcLen, ppDst, pDstInfo);
+  if(pDecContext->mMotionVectorData.size())
+  {
+    motionVectorSize = pDecContext->mMotionVectorData.size();
+    motionVectorData = pDecContext->mMotionVectorData.data();
+    pDecContext->mMotionVectorSize = 0;
+    pDecContext->mMotionVectorData.assign(pDecContext->mMotionVectorData.size(),0);
+  }
+    return state;
+}
+
 DECODING_STATE CWelsDecoder::FlushFrame (unsigned char** ppDst,
     SBufferInfo* pDstInfo) {
   bool bEndOfStreamFlag = true;

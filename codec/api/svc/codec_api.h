@@ -45,6 +45,7 @@ typedef unsigned char bool;
 
 #include "codec_app_def.h"
 #include "codec_def.h"
+#include <stdint.h>
 
 #if defined(_WIN32) || defined(__cdecl)
 #define EXTAPI __cdecl
@@ -407,6 +408,24 @@ class ISVCDecoder {
       unsigned char** ppDst,
       SBufferInfo* pDstInfo) = 0;
 
+  /**
+  * @brief   ParseBitstreamGetMotionVectors is used to parse the encoded bitstream and get the motion vectors for the given P frame.
+  *          If bParseOnly mode is enabled then only motionVectorData and motionVectorSize is updated and ppDst is returned with NULL Value.
+  *          If bParseOnly mode is disabled then along MotionVectorData and motionVectorSize the deocoded YUV buffer is updated in ppDst. 
+  * @param   pSrc the h264 stream to be decoded
+  * @param   iSrcLen the length of h264 stream
+  * @param   ppDst buffer pointer of decoded data (YUV)
+  * @param   pDstInfo information provided to API(width, height, etc.)
+  * @param   MotionVectorSize size of the total motion vector for the given P frame.
+  * @param   MotionVectorSize Motin vector data.(ex: MotionX, MotionY, Xoffset, Yoffset)
+  * @return  0 - success; otherwise -failed;
+  */
+  virtual DECODING_STATE EXTAPI ParseBitstreamGetMotionVectors (const unsigned char* pSrc,
+      const int iSrcLen,
+      unsigned char** ppDst,
+      SBufferInfo* pDstInfo,
+      size_t motionVectorSize,
+      int16_t* motionVectorData) = 0;
 
   /**
   * @brief   This function gets a decoded ready frame remaining in buffers after the last frame has been decoded.
@@ -514,6 +533,14 @@ DECODING_STATE (*DecodeFrame2) (ISVCDecoder*, const unsigned char* pSrc,
                                 const int iSrcLen,
                                 unsigned char** ppDst,
                                 SBufferInfo* pDstInfo);
+
+DECODING_STATE (*ParseBitstreamGetMotionVectors) (const unsigned char* pSrc,
+                                                  const int iSrcLen,
+                                                  unsigned char** ppDst,
+                                                  SBufferInfo* pDstInfo,
+                                                  size_t motionVectorSize,
+                                                  int16_t* motionVectorData);
+
 
 DECODING_STATE (*FlushFrame) (ISVCDecoder*, unsigned char** ppDst,
                               SBufferInfo* pDstInfo);

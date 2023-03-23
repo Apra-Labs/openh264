@@ -87,6 +87,12 @@ struct SVCDecoderImpl : public ISVCDecoder {
     EXPECT_TRUE (gThis == this);
     return static_cast<DECODING_STATE> (5);
   }
+  virtual DECODING_STATE EXTAPI ParseBitstreamGetMotionVectors (const unsigned char* pSrc,
+      const int iSrcLen, unsigned char** ppDst, SBufferInfo* pDstInfo,size_t motionVectorSize,
+      int16_t* motionVectorData) {
+    EXPECT_TRUE (gThis == this);
+    return static_cast<DECODING_STATE> (11);
+  }
   virtual DECODING_STATE EXTAPI FlushFrame (unsigned char** ppDst, SBufferInfo* pDstInfo) {
     EXPECT_TRUE (gThis == this);
     return static_cast<DECODING_STATE> (10);

@@ -57,6 +57,7 @@
 #include "mc.h"
 #include "memory_align.h"
 #include "wels_decoder_thread.h"
+#include <vector>
 
 namespace WelsDec {
 #define MAX_PRED_MODE_ID_I16x16  3
@@ -514,6 +515,8 @@ typedef struct TagWelsDecoderContext {
   PPictInfo               pPictInfoList;
   PPictReoderingStatus    pPictReoderingStatus;
   SBufferInfo*            pDstInfo;
+  size_t mMotionVectorSize = 0; 
+  std::vector<int16_t> mMotionVectorData ; 
 } SWelsDecoderContext, *PWelsDecoderContext;
 
 typedef struct tagSWelsDecThread {

@@ -91,6 +91,13 @@ class CWelsDecoder : public ISVCDecoder {
       unsigned char** ppDst,
       SBufferInfo* pDstInfo);
 
+  virtual DECODING_STATE EXTAPI ParseBitstreamGetMotionVectors (const unsigned char* pSrc,
+      const int iSrcLen,
+      unsigned char** ppDst,
+      SBufferInfo* pDstInfo,
+      size_t motionVectorSize,
+      int16_t* motionVectorData);  
+
   virtual DECODING_STATE EXTAPI FlushFrame (unsigned char** ppDst,
       SBufferInfo* pDstInfo);
 
