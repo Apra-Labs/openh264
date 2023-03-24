@@ -915,14 +915,14 @@ DECODING_STATE CWelsDecoder::ParseBitstreamGetMotionVectors (const unsigned char
     const int kiSrcLen,
     unsigned char** ppDst,
     SBufferInfo* pDstInfo,
-    size_t motionVectorSize,
-    int16_t* motionVectorData) {
+    size_t* motionVectorSize,
+    int16_t** motionVectorData) {
   PWelsDecoderContext pDecContext = m_pDecThrCtx[0].pCtx;
   auto state =  DecodeFrame2WithCtx (pDecContext, kpSrc, kiSrcLen, ppDst, pDstInfo);
   if(pDecContext->mMotionVectorSize)
   {
-    motionVectorSize = pDecContext->mMotionVectorSize;
-    motionVectorData = pDecContext->mMotionVectorData;
+    *motionVectorSize = pDecContext->mMotionVectorSize;
+    *motionVectorData = pDecContext->mMotionVectorData;
     pDecContext->mMotionVectorSize = 0;
     pDecContext->mMotionVectorData = nullptr;
   }

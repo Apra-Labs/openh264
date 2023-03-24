@@ -57,7 +57,6 @@
 #include "mc.h"
 #include "memory_align.h"
 #include "wels_decoder_thread.h"
-#include <vector>
 
 namespace WelsDec {
 #define MAX_PRED_MODE_ID_I16x16  3

@@ -417,15 +417,15 @@ class ISVCDecoder {
   * @param   ppDst buffer pointer of decoded data (YUV)
   * @param   pDstInfo information provided to API(width, height, etc.)
   * @param   MotionVectorSize size of the total motion vector for the given P frame.
-  * @param   MotionVectorSize Motin vector data.(ex: MotionX, MotionY, Xoffset, Yoffset)
+  * @param   MotionVectorData Motion vector data.(ex: MotionX, MotionY, Xoffset, Yoffset)
   * @return  0 - success; otherwise -failed;
   */
   virtual DECODING_STATE EXTAPI ParseBitstreamGetMotionVectors (const unsigned char* pSrc,
       const int iSrcLen,
       unsigned char** ppDst,
       SBufferInfo* pDstInfo,
-      size_t motionVectorSize,
-      int16_t* motionVectorData) = 0;
+      size_t* motionVectorSize,
+      int16_t** motionVectorData) = 0;
 
   /**
   * @brief   This function gets a decoded ready frame remaining in buffers after the last frame has been decoded.
@@ -538,8 +538,8 @@ DECODING_STATE (*ParseBitstreamGetMotionVectors) (const unsigned char* pSrc,
                                                   const int iSrcLen,
                                                   unsigned char** ppDst,
                                                   SBufferInfo* pDstInfo,
-                                                  size_t motionVectorSize,
-                                                  int16_t* motionVectorData);
+                                                  size_t* motionVectorSize,
+                                                  int16_t** motionVectorData);
 
 
 DECODING_STATE (*FlushFrame) (ISVCDecoder*, unsigned char** ppDst,
