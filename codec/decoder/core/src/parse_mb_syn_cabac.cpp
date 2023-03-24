@@ -519,7 +519,7 @@ int32_t ParseIntraPredModeChromaCabac (PWelsDecoderContext pCtx, uint8_t uiNeigh
 
 void UpdateMotionVector (PWelsDecoderContext pCtx , int16_t pMotionX, int16_t pMotionY, int16_t xOffset, int16_t yOffset) {
   pCtx->mMotionVectorSize += 4;
-  pCtx->mMotionVectorData.resize(pCtx->mMotionVectorSize);
+  pCtx->mMotionVectorData = (int16_t*) realloc(pCtx->mMotionVectorData, pCtx->mMotionVectorSize * sizeof(int16_t));
   pCtx->mMotionVectorData[pCtx->mMotionVectorSize-4] = pMotionX;
   pCtx->mMotionVectorData[pCtx->mMotionVectorSize-3] = pMotionY;
   pCtx->mMotionVectorData[pCtx->mMotionVectorSize-2] = xOffset;
