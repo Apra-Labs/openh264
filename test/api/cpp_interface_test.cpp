@@ -88,10 +88,16 @@ struct SVCDecoderImpl : public ISVCDecoder {
     return static_cast<DECODING_STATE> (5);
   }
   virtual DECODING_STATE EXTAPI ParseBitstreamGetMotionVectors (const unsigned char* pSrc,
-      const int iSrcLen, unsigned char** ppDst, SBufferInfo* pDstInfo,size_t* motionVectorSize,
+      const int iSrcLen, unsigned char** ppDst, SBufferInfo* pDstInfo,int32_t* motionVectorSize,
       int16_t** motionVectorData) {
     EXPECT_TRUE (gThis == this);
     return static_cast<DECODING_STATE> (11);
+  }
+  virtual DECODING_STATE EXTAPI ParseBitstreamGetMotionVectorsNoDelay (const unsigned char* pSrc,
+      const int iSrcLen, unsigned char** ppDst, SBufferInfo* pDstInfo,int32_t* motionVectorSize,
+      int16_t** motionVectorData) {
+    EXPECT_TRUE (gThis == this);
+    return static_cast<DECODING_STATE> (12);
   }
   virtual DECODING_STATE EXTAPI FlushFrame (unsigned char** ppDst, SBufferInfo* pDstInfo) {
     EXPECT_TRUE (gThis == this);

@@ -915,18 +915,44 @@ DECODING_STATE CWelsDecoder::ParseBitstreamGetMotionVectors (const unsigned char
     const int kiSrcLen,
     unsigned char** ppDst,
     SBufferInfo* pDstInfo,
-    size_t* motionVectorSize,
+    int32_t* motionVectorSize,
     int16_t** motionVectorData) {
   PWelsDecoderContext pDecContext = m_pDecThrCtx[0].pCtx;
   auto state =  DecodeFrame2WithCtx (pDecContext, kpSrc, kiSrcLen, ppDst, pDstInfo);
   if(pDecContext->mMotionVectorSize)
   {
     *motionVectorSize = pDecContext->mMotionVectorSize;
-    *motionVectorData = pDecContext->mMotionVectorData;
+    pDecContext->mMotionVectorData -= pDecContext->mMotionVectorSize;
+    memcpy(*motionVectorData, pDecContext->mMotionVectorData, pDecContext->mMotionVectorSize * 4);
     pDecContext->mMotionVectorSize = 0;
     pDecContext->mMotionVectorData = nullptr;
   }
     return state;
+}
+
+DECODING_STATE CWelsDecoder::ParseBitstreamGetMotionVectorsNoDelay (const unsigned char* kpSrc,
+    const int kiSrcLen,
+    unsigned char** ppDst,
+    SBufferInfo* pDstInfo,
+    int32_t* motionVectorSize,
+    int16_t** motionVectorData) {
+  int iRet = dsErrorFree;
+  if (m_iThreadCount >= 1) {
+    iRet = ThreadDecodeFrameInternal (kpSrc, kiSrcLen, ppDst, pDstInfo);
+    if (m_sReoderingStatus.iNumOfPicts) {
+      WAIT_EVENT (&m_sBufferingEvent, WELS_DEC_THREAD_WAIT_INFINITE);
+      RESET_EVENT (&m_sReleaseBufferEvent);
+      ReleaseBufferedReadyPicture (NULL, ppDst, pDstInfo);
+      SET_EVENT (&m_sReleaseBufferEvent);
+    }
+    return (DECODING_STATE)iRet;
+  }
+  int16_t* mvData = *motionVectorData;
+  iRet = (int)ParseBitstreamGetMotionVectors (kpSrc, kiSrcLen, ppDst, pDstInfo, motionVectorSize, &mvData);
+
+  iRet |= ParseBitstreamGetMotionVectors (NULL, 0, ppDst, pDstInfo, motionVectorSize, &mvData);
+  
+  return (DECODING_STATE)iRet;
 }
 
 DECODING_STATE CWelsDecoder::FlushFrame (unsigned char** ppDst,

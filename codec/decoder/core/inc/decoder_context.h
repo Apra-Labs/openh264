@@ -514,7 +514,7 @@ typedef struct TagWelsDecoderContext {
   PPictInfo               pPictInfoList;
   PPictReoderingStatus    pPictReoderingStatus;
   SBufferInfo*            pDstInfo;
-  size_t mMotionVectorSize = 0; 
+  int32_t mMotionVectorSize = 0; 
   int16_t* mMotionVectorData ; 
 } SWelsDecoderContext, *PWelsDecoderContext;
 

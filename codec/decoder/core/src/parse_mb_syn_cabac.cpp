@@ -519,11 +519,15 @@ int32_t ParseIntraPredModeChromaCabac (PWelsDecoderContext pCtx, uint8_t uiNeigh
 
 void UpdateMotionVector (PWelsDecoderContext pCtx , int16_t pMotionX, int16_t pMotionY, int16_t xOffset, int16_t yOffset) {
   pCtx->mMotionVectorSize += 4;
-  pCtx->mMotionVectorData = (int16_t*) realloc(pCtx->mMotionVectorData, pCtx->mMotionVectorSize * sizeof(int16_t));
-  pCtx->mMotionVectorData[pCtx->mMotionVectorSize-4] = pMotionX;
-  pCtx->mMotionVectorData[pCtx->mMotionVectorSize-3] = pMotionY;
-  pCtx->mMotionVectorData[pCtx->mMotionVectorSize-2] = xOffset;
-  pCtx->mMotionVectorData[pCtx->mMotionVectorSize-1] = yOffset;
+  if(!pCtx->mMotionVectorData)
+  {
+    pCtx->mMotionVectorData = (int16_t*) malloc(pCtx->iImgWidthInPixel * pCtx->iImgHeightInPixel * 8);
+  }
+  pCtx->mMotionVectorData[0] = pMotionX;
+  pCtx->mMotionVectorData[1] = pMotionY;
+  pCtx->mMotionVectorData[2] = xOffset;
+  pCtx->mMotionVectorData[3] = yOffset;
+  pCtx->mMotionVectorData += 4;
 }
 
 int32_t ParseInterPMotionInfoCabac (PWelsDecoderContext pCtx, PWelsNeighAvail pNeighAvail, uint8_t* pNonZeroCount,
