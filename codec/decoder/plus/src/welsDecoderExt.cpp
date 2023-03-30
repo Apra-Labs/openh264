@@ -923,9 +923,8 @@ DECODING_STATE CWelsDecoder::ParseBitstreamGetMotionVectors (const unsigned char
   {
     *motionVectorSize = pDecContext->mMotionVectorSize;
     pDecContext->mMotionVectorData -= pDecContext->mMotionVectorSize;
-    memcpy(*motionVectorData, pDecContext->mMotionVectorData, pDecContext->mMotionVectorSize * 4);
+    memcpy(*motionVectorData, pDecContext->mMotionVectorData, pDecContext->mMotionVectorSize * sizeof(int16_t));
     pDecContext->mMotionVectorSize = 0;
-    pDecContext->mMotionVectorData = nullptr;
   }
     return state;
 }

@@ -590,7 +590,6 @@ void WelsFreeDynamicMemory (PWelsDecoderContext pCtx) {
 
   //free CABAC memory
   pMa->WelsFree (pCtx->pCabacDecEngine, "pCtx->pCabacDecEngine");
-  free (pCtx->mMotionVectorData);
 }
 
 /*!
