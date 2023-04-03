@@ -409,9 +409,7 @@ class ISVCDecoder {
       SBufferInfo* pDstInfo) = 0;
 
   /**
-  * @brief   ParseBitstreamGetMotionVectors is used to parse the encoded bitstream and get the motion vectors for the given P frame.
-  *          If bParseOnly mode is enabled then only motionVectorData and motionVectorSize is updated and ppDst is returned with NULL Value.
-  *          If bParseOnly mode is disabled then along MotionVectorData and motionVectorSize the deocoded YUV buffer is updated in ppDst. 
+  * @brief  parse bitstream and get motion vectors - skip frame reconstruction
   * @param   pSrc the h264 stream to be decoded
   * @param   iSrcLen the length of h264 stream
   * @param   ppDst buffer pointer of decoded data (YUV)
@@ -420,12 +418,13 @@ class ISVCDecoder {
   * @param   MotionVectorData Motion vector data.(ex: MotionX, MotionY, Xoffset, Yoffset)
   * @return  0 - success; otherwise -failed;
   */
-  virtual DECODING_STATE EXTAPI ParseBitstreamGetMotionVectors (const unsigned char* pSrc,
-      const int iSrcLen,
-      unsigned char** ppDst,
-      SBufferInfo* pDstInfo,
-      int32_t* motionVectorSize,
-      int16_t** motionVectorData) = 0;
+  virtual DECODING_STATE EXTAPI ParseBitstreamGetMotionVectors (const unsigned char* kpSrc,
+    const int kiSrcLen,
+    unsigned char** ppDst,
+    SParserBsInfo* pDstInfo,
+    SBufferInfo* ppDecodeInfo,
+    int32_t* motionVectorSize,
+    int16_t** motionVectorData) = 0;
 
   /**
    @brief   ParseBitstreamGetMotionVectors is used to parse the encoded bitstream and get the motion vectors for the given P frame.
@@ -553,10 +552,11 @@ DECODING_STATE (*DecodeFrame2) (ISVCDecoder*, const unsigned char* pSrc,
                                 unsigned char** ppDst,
                                 SBufferInfo* pDstInfo);
 
-DECODING_STATE (*ParseBitstreamGetMotionVectors) (const unsigned char* pSrc,
-                                                  const int iSrcLen,
+DECODING_STATE (*ParseBitstreamGetMotionVectors) (const unsigned char* kpSrc,
+                                                  const int kiSrcLen,
                                                   unsigned char** ppDst,
-                                                  SBufferInfo* pDstInfo,
+                                                  SParserBsInfo* pDstInfo,
+                                                  SBufferInfo* ppDecodeInfo,
                                                   int32_t* motionVectorSize,
                                                   int16_t** motionVectorData);
 
