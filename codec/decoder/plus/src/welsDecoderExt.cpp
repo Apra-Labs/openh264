@@ -972,11 +972,6 @@ DECODING_STATE CWelsDecoder::ParseBitstreamGetMotionVectors (const unsigned char
   }
   WelsDecodeBs (pDecContext, kpSrc, kiSrcLen, ppDst, ppDecodeInfo, pDstInfo);
 
-  if(ppDecodeInfo->UsrData.sSystemBuffer.iStride[0])
-  {
-    printf("%d \n", ppDecodeInfo->UsrData.sSystemBuffer.iStride[0]);
-  }
-
   if(pDecContext->mMotionVectorSize)
   {
     *motionVectorSize = pDecContext->mMotionVectorSize;
