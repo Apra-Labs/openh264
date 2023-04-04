@@ -732,11 +732,11 @@ DECODING_STATE CWelsDecoder::DecodeFrame2WithCtx (PWelsDecoderContext pDecContex
     return dsInitialOptExpected;
   }
 
-  // if (pDecContext->pParam->bParseOnly) {
-  //   WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_ERROR, "bParseOnly should be false for this API calling! \n");
-  //   pDecContext->iErrorCode |= dsInvalidArgument;
-  //   return dsInvalidArgument;
-  // }
+  if (pDecContext->pParam->bParseOnly) {
+    WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_ERROR, "bParseOnly should be false for this API calling! \n");
+    pDecContext->iErrorCode |= dsInvalidArgument;
+    return dsInvalidArgument;
+  }
   if (CheckBsBuffer (pDecContext, kiSrcLen)) {
     if (ResetDecoder (pDecContext))
       return dsOutOfMemory;
@@ -908,7 +908,10 @@ DECODING_STATE CWelsDecoder::DecodeFrame2 (const unsigned char* kpSrc,
     SBufferInfo* pDstInfo) {
   PWelsDecoderContext pDecContext = m_pDecThrCtx[0].pCtx;
   pDecContext->pDstInfo = pDstInfo;
-  return DecodeFrame2WithCtx (pDecContext, kpSrc, kiSrcLen, ppDst, pDstInfo);
+  auto state =  DecodeFrame2WithCtx (pDecContext, kpSrc, kiSrcLen, ppDst, pDstInfo);
+  pDecContext->mMotionVectorData -= pDecContext->mMotionVectorSize;
+  pDecContext->mMotionVectorSize = 0;
+  return state;
 }
 
 DECODING_STATE CWelsDecoder::ParseBitstreamGetMotionVectors (const unsigned char* kpSrc,
@@ -928,11 +931,11 @@ DECODING_STATE CWelsDecoder::ParseBitstreamGetMotionVectors (const unsigned char
     return dsInitialOptExpected;
   }
 
-  // if (!pDecContext->pParam->bParseOnly) {
-  //   WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_ERROR, "bParseOnly should be true for this API calling! \n");
-  //   pDecContext->iErrorCode |= dsInvalidArgument;
-  //   return dsInvalidArgument;
-  // }
+  if (!pDecContext->pParam->bParseOnly) {
+    WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_ERROR, "bParseOnly should be true for this API calling! \n");
+    pDecContext->iErrorCode |= dsInvalidArgument;
+    return dsInvalidArgument;
+  }
   int64_t iEnd, iStart = WelsTime();
   if (CheckBsBuffer (pDecContext, kiSrcLen)) {
     if (ResetDecoder (pDecContext))
@@ -1009,7 +1012,7 @@ DECODING_STATE CWelsDecoder::ParseBitstreamGetMotionVectors (const unsigned char
   return (DECODING_STATE)pDecContext->iErrorCode;
 }
 
-DECODING_STATE CWelsDecoder::ParseBitstreamGetMotionVectorsNoDelay (const unsigned char* kpSrc,
+DECODING_STATE CWelsDecoder::DecodeFrameGetMotionVectorsNoDelay (const unsigned char* kpSrc,
     const int kiSrcLen,
     unsigned char** ppDst,
     SBufferInfo* pDstInfo,

@@ -438,7 +438,7 @@ class ISVCDecoder {
   * @param   MotionVectorData Motion vector data.(ex: MotionX, MotionY, Xoffset, Yoffset)
   * @return  0 - success; otherwise -failed;
   */
-   virtual DECODING_STATE EXTAPI ParseBitstreamGetMotionVectorsNoDelay (const unsigned char* pSrc,
+   virtual DECODING_STATE EXTAPI DecodeFrameGetMotionVectorsNoDelay (const unsigned char* pSrc,
       const int iSrcLen,
       unsigned char** ppDst,
       SBufferInfo* pDstInfo,
@@ -560,7 +560,7 @@ DECODING_STATE (*ParseBitstreamGetMotionVectors) (const unsigned char* kpSrc,
                                                   int32_t* motionVectorSize,
                                                   int16_t** motionVectorData);
 
-DECODING_STATE (*ParseBitstreamGetMotionVectorsNoDelay) (const unsigned char* pSrc,
+DECODING_STATE (*DecodeFrameGetMotionVectorsNoDelay) (const unsigned char* pSrc,
                                                              const int iSrcLen,
                                                              unsigned char** ppDst,
                                                              SBufferInfo* pDstInfo,
