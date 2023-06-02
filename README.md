@@ -175,6 +175,15 @@ Install with:
 ninja -C builddir install
 ```
 
+Run Motion Vector Tests
+-----------------------
+
+``` shell
+cd .\builddir\codec\console\dec\
+
+``` shell
+.\h264dec.exe  input_file_path output_file_path
+
 Using the Source
 ----------------
 - `codec` - encoder, decoder, console (test app), build (makefile, vcproj)
