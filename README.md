@@ -56,6 +56,14 @@ Processor Support
 
 Building the Library
 --------------------
+``` shell
+git clone --recursive https://github.com/Apra-Labs/openh264.git
+```
+
+``` shell 
+git checkout ApraPipesMaster
+```
+
 NASM needed to be installed for assembly code: workable version 2.10.06 or above, NASM can be downloaded from http://www.nasm.us/.
 For Mac OSX 64-bit NASM needed to be below version 2.11.08 as NASM 2.11.08 will introduce error when using RIP-relative addresses in Mac OSX 64-bit
 
