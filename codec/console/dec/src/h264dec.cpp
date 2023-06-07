@@ -70,6 +70,7 @@ int    g_iDecodedFrameNum = 0;
 #endif
 //using namespace WelsDec;
 
+ int parseOnly = 1;
 int32_t readBit (uint8_t* pBufPtr, int32_t& curBit) {
   int nIndex = curBit / 8;
   int nOffset = curBit % 8 + 1;
@@ -462,10 +463,10 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
     uiTimeStamp ++;
     memset (&sDstBufInfo, 0, sizeof (SBufferInfo));
     sDstBufInfo.uiInBsTimeStamp = uiTimeStamp;
-    if (!bLegacyCalling) {
+    if (parseOnly) {
       pDecoder->ParseBitstreamGetMotionVectors (pBuf + iBufPos, iSliceSize, pData ,&parseInfo, &sDstBufInfo, &mMotionVectorSize, &mMotionVectorData);
     } else {
-      pDecoder->DecodeFrame2 (pBuf + iBufPos, iSliceSize, pData, &sDstBufInfo);
+      pDecoder->DecodeFrameGetMotionVectorsNoDelay (pBuf + iBufPos, iSliceSize, pData, &sDstBufInfo, &mMotionVectorSize, &mMotionVectorData);
     }
 
     if (sDstBufInfo.iBufferStatus == 1) {
@@ -492,33 +493,32 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
       ++ iFrameCount;
     }
 
-    if(mMotionVectorData && mMotionVectorSize != 704 * 576 * 8 && lastFrameMtoionVectorSize != mMotionVectorSize)
+    if(mMotionVectorData && mMotionVectorSize != 1024 * 1024 * 8 && lastFrameMtoionVectorSize != mMotionVectorSize)
     {
       ++ iFrameCount;
       lastFrameMtoionVectorSize = mMotionVectorSize;
 
-      const unsigned char* dataToSC = reinterpret_cast<const unsigned char* >(mMotionVectorData);
-      if (mMotionVectorSize == 8900)
-      {
-        std::string path = "../../../../data/1Frame_motionVectors.raw";
-        bool compareRes = false;
-        const uint8_t *dataRead = nullptr;
-        unsigned int dataSize = 0U;
-        assert(readFile(path, dataRead, dataSize));
-        assert(dataSize == mMotionVectorSize);
+      // const unsigned char* dataToSC = reinterpret_cast<const unsigned char* >(mMotionVectorData);
+      // if (mMotionVectorSize == 8900)
+      // {
+      //   std::string path = "/data/1Frame_motionVectors.raw";
+      //   bool compareRes = false;
+      //   const uint8_t *dataRead = nullptr;
+      //   unsigned int dataSize = 0U;
+      //   assert(readFile(path, dataRead, dataSize));
+      //   assert(dataSize == mMotionVectorSize);
 
-        compareRes = CompareData(dataToSC, dataRead, dataSize, 0);
-        assert(compareRes);
+      //   compareRes = CompareData(dataToSC, dataRead, dataSize, 0);
+      //   assert(compareRes);
         
-        
-        delete[] dataRead;
-        dataRead = nullptr;
+      //   delete[] dataRead;
+      //   dataRead = nullptr;
 
-        if (!compareRes)
-        {
-          assert(writeFile(path, dataToSC, mMotionVectorSize));
-        }
-      }
+      //   if (!compareRes)
+      //   {
+      //     assert(writeFile(path, dataToSC, mMotionVectorSize));
+      //   }
+      // }
     }
 
     if (bLegacyCalling) {
@@ -560,6 +560,10 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
   FlushFrames (pDecoder, iTotal, pYuvFile, pOptionFile, iFrameCount, uiTimeStamp, iWidth, iHeight, iLastWidth,
                iLastHeight);
   dElapsed = iTotal / 1e6;
+  if(!parseOnly)
+  {
+    iFrameCount = iFrameCount / 2;
+  }
   fprintf (stderr, "-------------------------------------------------------\n");
   fprintf (stderr, "Frames:          \t\t%d\nMotionVector Extraction time :\t%f sec\nFPS:            \t\t%f fps\n",
            iFrameCount, dElapsed, (iFrameCount * 1.0) / dElapsed);
@@ -610,14 +614,13 @@ int32_t main (int32_t iArgC, char* pArgV[]) {
 
   sDecParam.sVideoProperty.size = sizeof (sDecParam.sVideoProperty);
   sDecParam.eEcActiveIdc = ERROR_CON_SLICE_MV_COPY_CROSS_IDR_FREEZE_RES_CHANGE;
-  sDecParam.bParseOnly = true;
 
   if (iArgC < 2) {
     printf ("usage 1: h264dec.exe welsdec.cfg\n");
     printf ("usage 2: h264dec.exe welsdec.264 out.yuv\n");
     printf ("usage 3: h264dec.exe welsdec.264\n");
     return 1;
-  } else if (iArgC == 2) {
+  } else if (iArgC == 3) {
     if (strstr (pArgV[1], ".cfg")) { // read config file //confirmed_safe_unsafe_usage
       CReadConfig cReadCfg (pArgV[1]);
       string strTag[4];
@@ -669,6 +672,16 @@ int32_t main (int32_t iArgC, char* pArgV[]) {
   } else { //iArgC > 2
     strInputFile = pArgV[1];
     strOutputFile = pArgV[2];
+    std::string parseMode = pArgV[3];
+    if(parseMode == "true" || parseMode == "TRUE" || parseMode == "True")
+    {
+        parseOnly = 1;
+        sDecParam.bParseOnly = true;
+    }
+    else{
+      parseOnly = 0;
+      sDecParam.bParseOnly =  false;
+    }
     sDecParam.uiTargetDqLayer = (uint8_t) - 1;
     sDecParam.eEcActiveIdc = ERROR_CON_SLICE_COPY;
     sDecParam.sVideoProperty.eVideoBsType = VIDEO_BITSTREAM_DEFAULT;

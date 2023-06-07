@@ -191,13 +191,13 @@ cd .\builddir\codec\console\dec\
 ```
 
 ``` shell
-.\h264dec.exe  input_file_path output_file_path
+.\h264dec.exe  input_file_path(h264 bitstream) output_file_path(decoded yuv data) parseOnlyMode
 ```
 
 ``` shell
-.\h264dec.exe ..\..\..\..\data\h264_bitstream_cars.h264 output.yuv
+.\h264dec.exe ..\..\..\..\data\h264_bitstream_cars.h264 output.yuv true
 ```
-As bParseOnly mode is enabled decoded data will not be generated in output.yuv.
+When parseOnly mode is enabled only motion vectors are extracted and frame reconstruction part is skipped , and when parseOnly mode is disabled decoded output is generated in output.yuv
 
 Using the Source
 ----------------
