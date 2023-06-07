@@ -192,9 +192,10 @@ cd .\builddir\codec\console\dec\
 
 ``` shell
 .\h264dec.exe  input_file_path output_file_path
+```
 
 ``` shell
-.\h264dec.exe .\h264dec.exe ..\..\..\..\data\h264_bitstream_cars.h264 output.yuv
+.\h264dec.exe ..\..\..\..\data\h264_bitstream_cars.h264 output.yuv
 ```
 As bParseOnly mode is enabled decoded data will not be generated in output.yuv.
 
