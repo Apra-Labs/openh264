@@ -51,6 +51,8 @@
 #include "typedefs.h"
 #include "measure_time.h"
 #include "d3d9_utils.h"
+#include <assert.h>
+#include <fstream>
 
 using namespace std;
 
@@ -215,6 +217,77 @@ void FlushFrames (ISVCDecoder* pDecoder, int64_t& iTotal, FILE* pYuvFile, FILE* 
     }
   }
 }
+
+bool readFile(std::string fileNameToUse, const uint8_t*& data, unsigned int& size)
+{
+	bool readRes = false;
+	if (!fileNameToUse.empty())
+	{
+    std::ifstream file(fileNameToUse.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+    if (file.is_open())
+    {
+      // ios::ate implies that file has been seeked to the end
+      // so tellg should give total size
+      size = static_cast<unsigned int>(file.tellg());
+      if (size > 0U)
+      {
+        data = new uint8_t[size];
+        file.seekg(0, std::ios::beg);
+        file.read((char *)data, size);
+
+        readRes = true;
+      }
+
+      file.close();
+    }
+  }
+	return readRes;
+}
+
+bool CompareData(const uint8_t* data01, const uint8_t* data02, unsigned int dataSize, int tolerance)
+{
+	int mismatch = 0;
+
+	for (unsigned int i = 0; i < dataSize; i++)
+	{
+		if (data01[i] == data02[i])
+		{
+			continue;
+
+		}
+		else
+		{
+			mismatch += 1;
+
+			if (mismatch > tolerance)
+			{
+				break;
+			}
+		}
+	}
+
+	return (mismatch <= tolerance);
+}
+
+bool writeFile(std::string fileNameToUse, const uint8_t* data, size_t size)
+{
+	bool writeRes = false;
+
+	if (!fileNameToUse.empty())
+	{
+		std::ofstream file(fileNameToUse.c_str(), std::ios::out | std::ios::binary);
+		if (file.is_open())
+		{
+			file.write((const char*)data, size);
+
+			writeRes = true;
+
+			file.close();
+		}
+	}
+	return writeRes;
+}
+
 void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, const char* kpOuputFileName,
                          int32_t& iWidth, int32_t& iHeight, const char* pOptionFileName, const char* pLengthFileName,
                          int32_t iErrorConMethod,
@@ -222,9 +295,9 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
   FILE* pH264File   = NULL;
   FILE* pYuvFile    = NULL;
   FILE* pOptionFile = NULL;
+  int lastFrameMtoionVectorSize = 0;
 // Lenght input mode support
   FILE* fpTrack = NULL;
-
   if (pDecoder == NULL) return;
 
   int32_t pInfo[4];
@@ -238,6 +311,7 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
   uint8_t* pData[3] = {NULL};
   uint8_t* pDst[3] = {NULL};
   SBufferInfo sDstBufInfo;
+  SParserBsInfo parseInfo;
 
   int32_t iBufPos = 0;
   int32_t iFileSize;
@@ -249,6 +323,8 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
   double dElapsed = 0;
   uint8_t uLastSpsBuf[32];
   int32_t iLastSpsByteCount = 0;
+  int32_t mMotionVectorSize = 1024 * 1024 * 8;
+	int16_t* mMotionVectorData = (int16_t*) malloc(mMotionVectorSize);
 
   int32_t iThreadCount = 1;
   pDecoder->GetOption (DECODER_OPTION_NUM_OF_THREADS, &iThreadCount);
@@ -387,7 +463,7 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
     memset (&sDstBufInfo, 0, sizeof (SBufferInfo));
     sDstBufInfo.uiInBsTimeStamp = uiTimeStamp;
     if (!bLegacyCalling) {
-      pDecoder->DecodeFrameNoDelay (pBuf + iBufPos, iSliceSize, pData, &sDstBufInfo);
+      pDecoder->ParseBitstreamGetMotionVectors (pBuf + iBufPos, iSliceSize, pData ,&parseInfo, &sDstBufInfo, &mMotionVectorSize, &mMotionVectorData);
     } else {
       pDecoder->DecodeFrame2 (pBuf + iBufPos, iSliceSize, pData, &sDstBufInfo);
     }
@@ -414,6 +490,35 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
         }
       }
       ++ iFrameCount;
+    }
+
+    if(mMotionVectorData && mMotionVectorSize != 704 * 576 * 8 && lastFrameMtoionVectorSize != mMotionVectorSize)
+    {
+      ++ iFrameCount;
+      lastFrameMtoionVectorSize = mMotionVectorSize;
+
+      const unsigned char* dataToSC = reinterpret_cast<const unsigned char* >(mMotionVectorData);
+      if (mMotionVectorSize == 8900)
+      {
+        std::string path = "../../../../data/1Frame_motionVectors.raw";
+        bool compareRes = false;
+        const uint8_t *dataRead = nullptr;
+        unsigned int dataSize = 0U;
+        assert(readFile(path, dataRead, dataSize));
+        assert(dataSize == mMotionVectorSize);
+
+        compareRes = CompareData(dataToSC, dataRead, dataSize, 0);
+        assert(compareRes);
+        
+        
+        delete[] dataRead;
+        dataRead = nullptr;
+
+        if (!compareRes)
+        {
+          assert(writeFile(path, dataToSC, mMotionVectorSize));
+        }
+      }
     }
 
     if (bLegacyCalling) {
@@ -451,12 +556,13 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
     iBufPos += iSliceSize;
     ++ iSliceIndex;
   }
+
   FlushFrames (pDecoder, iTotal, pYuvFile, pOptionFile, iFrameCount, uiTimeStamp, iWidth, iHeight, iLastWidth,
                iLastHeight);
   dElapsed = iTotal / 1e6;
   fprintf (stderr, "-------------------------------------------------------\n");
-  fprintf (stderr, "iWidth:\t\t%d\nheight:\t\t%d\nFrames:\t\t%d\ndecode time:\t%f sec\nFPS:\t\t%f fps\n",
-           iWidth, iHeight, iFrameCount, dElapsed, (iFrameCount * 1.0) / dElapsed);
+  fprintf (stderr, "Frames:          \t\t%d\nMotionVector Extraction time :\t%f sec\nFPS:            \t\t%f fps\n",
+           iFrameCount, dElapsed, (iFrameCount * 1.0) / dElapsed);
   fprintf (stderr, "-------------------------------------------------------\n");
 
 #if defined (WINDOWS_PHONE)
@@ -504,6 +610,7 @@ int32_t main (int32_t iArgC, char* pArgV[]) {
 
   sDecParam.sVideoProperty.size = sizeof (sDecParam.sVideoProperty);
   sDecParam.eEcActiveIdc = ERROR_CON_SLICE_MV_COPY_CROSS_IDR_FREEZE_RES_CHANGE;
+  sDecParam.bParseOnly = true;
 
   if (iArgC < 2) {
     printf ("usage 1: h264dec.exe welsdec.cfg\n");
